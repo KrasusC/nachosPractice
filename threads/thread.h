@@ -83,6 +83,7 @@ class Thread {
 
   public:
     Thread(char* debugName);		// initialize a Thread
+	Thread(char* debugName, int tid, int uid); // Edited by Krasus
     ~Thread(); 				// deallocate a Thread
 					// NOTE -- thread being deleted
 					// must not be running when delete
@@ -102,9 +103,15 @@ class Thread {
     void setStatus(ThreadStatus st) { status = st; }
     char* getName() { return (name); }
     void Print() { printf("%s, ", name); }
+
+	// Edited by Krasus
 	int getTid() { return tid; }
+	int getUid() { return uid; }
 	int getStatus() { return status; }
-	static int checkMaxNumberAndReturn(); // Edited by Krasus
+	static int checkMaxNumberAndReturn();
+	static void printThreads();
+	// Edited by Krasus
+
   private:
     // some of the private data for this class is listed above
 
@@ -113,7 +120,12 @@ class Thread {
 					// (If NULL, don't deallocate stack)
     ThreadStatus status;		// ready, running or blocked
     char* name;
+
+	//Edited by Krasus
 	int tid;
+	int uid;
+	//Edited by Krasus
+
     void StackAllocate(VoidFunctionPtr func, int arg);
     					// Allocate a stack for thread.
 					// Used internally by Fork()

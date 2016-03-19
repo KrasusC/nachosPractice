@@ -18,7 +18,7 @@ Interrupt *interrupt;			// interrupt status
 Statistics *stats;			// performance metrics
 Timer *timer;				// the hardware timer device,
 					// for invoking context switches
-					
+
 bool threadPoolValidation[MAX_THREAD_NUM];
 Thread* threadPool[MAX_THREAD_NUM];
 
@@ -144,7 +144,14 @@ Initialize(int argc, char **argv)
     // We didn't explicitly allocate the current thread we are running in.
     // But if it ever tries to give up the CPU, we better have a Thread
     // object to save its state.
-    currentThread = new Thread("main");
+
+	//Edited by Krasus
+	memset(threadPoolValidation, 0, sizeof(threadPoolValidation));
+    currentThread = new Thread("main", 0, 0); // let the main thread be number 0, and user id with 0
+	threadPoolValidation[0] = true;
+	threadPool[0] = currentThread;
+	//Edited by Krasus
+
     currentThread->setStatus(RUNNING);
 
     interrupt->Enable();

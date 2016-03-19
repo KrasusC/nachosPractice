@@ -52,6 +52,7 @@
 
 #include "utility.h"
 #include "system.h"
+#include "thread.h"
 
 #ifdef THREADS
 extern int testnum;
@@ -89,7 +90,6 @@ main(int argc, char **argv)
 
 
 #ifdef THREADS
-	memset(threadPoolValidation, 0, sizeof(threadPoolValidation));
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
       argCount = 1;
       switch (argv[0][1]) {
@@ -104,17 +104,13 @@ main(int argc, char **argv)
     }
 
     ThreadTest();
+	Thread::printThreads();
 #endif
 	//printf("hello W\n");
     for (argc--, argv++; argc > 0; argc -= argCount, argv += argCount) {
 	argCount = 1;
         if (!strcmp(*argv, "-z"))               // print copyright
             printf (copyright);
-			
-	for (int i = 0; i < MAX_THREAD_NUM; ++i) {
-		if (threadPoolValidation[i] == true)
-			printf("thread id = %d, states = %d", threadPool[i]->getTid(), threadPool[i]->getStatus());
-	}
 
 #ifdef USER_PROGRAM
         if (!strcmp(*argv, "-x")) {        	// run a user program

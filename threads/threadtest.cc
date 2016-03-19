@@ -35,6 +35,11 @@ SimpleThread(int which)
     }
 }
 
+void PrintThread(int which) {
+	printf("This thread is printed with tid : %d\n", currentThread->getTid());
+	currentThread->Yield();
+}
+
 //----------------------------------------------------------------------
 // ThreadTest1
 // 	Set up a ping-pong between two threads, by forking a thread
@@ -48,9 +53,8 @@ ThreadTest1()
 
 	for (int i = 0; i < 135; ++i) {
 	    Thread *t = new Thread("forked thread");
-
-		t->Fork(SimpleThread, 1);
-	    SimpleThread(0);
+		t->Fork(PrintThread, 1);
+	    //SimpleThread(0);
 	}
 }
 

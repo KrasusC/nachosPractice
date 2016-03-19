@@ -39,17 +39,22 @@ Thread::Thread(char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+	uid = 0;
 
-	// Eidted by Krasus
-	int potentialID = Thread::checkMaxNumberAndReturn();
-	printf("pid = %d \n", potentialID);
-	if (potentialID == -1)
-		ASSERT("REACHING MAX THREAD NUM");
+#ifdef USER_PROGRAM
+    space = NULL;
+#endif
+}
 
-	threadPoolValidation[potentialID] = true;
-	threadPool[potentialID] = this;
-	tid = potentialID;
-	// Eidted by Krasus
+Thread::Thread(char* threadName, int tid, int uid)
+{
+    name = threadName;
+    stackTop = NULL;
+    stack = NULL;
+    status = JUST_CREATED;
+	this->tid = tid;
+	this->uid = uid;
+
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
@@ -58,10 +63,19 @@ Thread::Thread(char* threadName)
 int Thread::checkMaxNumberAndReturn()
 {
 	for (int i = 0; i < MAX_THREAD_NUM; ++i) {
+		//printf("this is threadPoolValidation %d : %d\n", i, threadPoolValidation[i]);
 		if (threadPoolValidation[i] == false)
 			return i;// i  is an available number for thread
 	}
 	return -1; // -1 means reaching the max number of threads
+}
+
+void Thread::printThreads()
+{
+	printf("user_id\tthread_id\tthread_name\n");
+	for (int i = 0; i < MAX_THREAD_NUM; ++i) {
+		printf("%d\t%d\t%s\n", threadPool[i]->getUid(), threadPool[i]->getTid(), threadPool[i]->getName());
+	}
 }
 
 //----------------------------------------------------------------------
@@ -113,6 +127,19 @@ Thread::~Thread()
 void
 Thread::Fork(VoidFunctionPtr func, int arg)
 {
+	// Eidted by Krasus
+	int potentialID = Thread::checkMaxNumberAndReturn();
+	printf("pid = %d is constructing...\n", potentialID);
+	if (potentialID == -1) {
+		printf("Failed! Reaching the max limit number of threads\n");
+		//currentThread->Yield();
+		return;
+	}
+	threadPoolValidation[potentialID] = true;
+	threadPool[potentialID] = this;
+	tid = potentialID;
+	//printf("this is thread %d\n", tid);
+	// Eidted by Krasus
     DEBUG('t', "Forking thread \"%s\" with func = 0x%x, arg = %d\n",
 	  name, (int) func, arg);
 
