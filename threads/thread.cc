@@ -72,9 +72,10 @@ int Thread::checkMaxNumberAndReturn()
 
 void Thread::printThreads()
 {
-	printf("user_id\tthread_id\tthread_name\n");
+	printf("user_id\tthread_id\tthread_name\tstatus\n");
+	char* statusString[4] = {"JUST_CREATED", "RUNNING", "READY", "BLOCKED" };
 	for (int i = 0; i < MAX_THREAD_NUM; ++i) {
-		printf("%d\t%d\t%s\n", threadPool[i]->getUid(), threadPool[i]->getTid(), threadPool[i]->getName());
+		printf("%d\t%d\t%s\t%s\n", threadPool[i]->getUid(), threadPool[i]->getTid(), threadPool[i]->getName(), statusString[threadPool[i]->getStatus()]);
 	}
 }
 
