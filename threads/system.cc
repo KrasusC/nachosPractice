@@ -7,6 +7,8 @@
 
 #include "copyright.h"
 #include "system.h"
+#include "scheduler.h"
+#include "thread.h"
 
 // This defines *all* of the global data structures used by Nachos.
 // These are all initialized and de-allocated by this file.
@@ -63,8 +65,40 @@ extern void Cleanup();
 static void
 TimerInterruptHandler(int dummy)
 {
-    if (interrupt->getStatus() != IdleMode)
-	interrupt->YieldOnReturn();
+	//Edited by Krasus
+	currentThread->increaseTimeSlice(); // increase a time slice
+	//Edited by Krasus
+    if (interrupt->getStatus() != IdleMode) {
+		int p = currentThread->getPriority();
+		int slice = currentThread->getTimeSlice();
+		printf("p = %d\n", p);
+		printf("slice = %d\n", slice);
+
+		if (p <= Thread::priorityThreshold1) {
+			if (slice >= Scheduler::ListTimeSlice) {
+				printf("Scheduler::ListTimeSlice = %d\n", Scheduler::ListTimeSlice);
+				currentThread->setTimeSlice(0);// reset the time slice
+				interrupt->YieldOnReturn();
+				//printf("FFF");
+			}
+		}
+		else if (p <= Thread::priorityThreshold2) {
+			if (slice >= Scheduler::List1TimeSlice) {
+				printf("Scheduler::List1TimeSlice = %d\n", Scheduler::ListTimeSlice);
+				currentThread->setTimeSlice(0);// reset the time slice
+				interrupt->YieldOnReturn();
+				//printf("FFF");
+			}
+		}
+		else {
+			if (slice >= Scheduler::List2TimeSlice) {
+				printf("Scheduler::List2TimeSlice = %d\n", 100);
+				currentThread->setTimeSlice(0);// reset the time slice
+				interrupt->YieldOnReturn();
+				//printf("FFF");
+			}
+		}
+	}
 }
 
 //----------------------------------------------------------------------
@@ -137,7 +171,10 @@ Initialize(int argc, char **argv)
     interrupt = new Interrupt;			// start up interrupt handling
     scheduler = new Scheduler();		// initialize the ready queue
     if (randomYield)				// start the timer (if needed)
-	timer = new Timer(TimerInterruptHandler, 0, randomYield);
+		timer = new Timer(TimerInterruptHandler, 0, randomYield);
+	else//Edited by Krasus, make the program generate a non-random clock-interrupt
+		timer = new Timer(TimerInterruptHandler, 0, FALSE);
+
 
     threadToBeDestroyed = NULL;
 
@@ -147,7 +184,8 @@ Initialize(int argc, char **argv)
 
 	//Edited by Krasus
 	memset(threadPoolValidation, 0, sizeof(threadPoolValidation));
-    currentThread = new Thread("main", 0, 0); // let the main thread be number 0, and user id with 0
+    currentThread = new Thread("main", 0, 0); // let the main thread be uid 0, and priority with 0
+	currentThread->setTid(0);
 	threadPoolValidation[0] = true;
 	threadPool[0] = currentThread;
 	//Edited by Krasus

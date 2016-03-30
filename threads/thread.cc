@@ -40,20 +40,23 @@ Thread::Thread(char* threadName)
     stack = NULL;
     status = JUST_CREATED;
 	uid = 0;
+	priority = 0; // Edited by Krasus, the default priority is highest, main thread.
 
 #ifdef USER_PROGRAM
     space = NULL;
 #endif
 }
 
-Thread::Thread(char* threadName, int tid, int uid)
+Thread::Thread(char* threadName, int uid, int p)
 {
     name = threadName;
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
-	this->tid = tid;
+	// tid is given in Fork
 	this->uid = uid;
+	this->priority = p;
+	usedTimeSlice = 0;
 
 #ifdef USER_PROGRAM
     space = NULL;
@@ -75,7 +78,8 @@ void Thread::printThreads()
 	printf("user_id\tthread_id\tthread_name\tstatus\n");
 	char* statusString[4] = {"JUST_CREATED", "RUNNING", "READY", "BLOCKED" };
 	for (int i = 0; i < MAX_THREAD_NUM; ++i) {
-		printf("%d\t%d\t%s\t%s\n", threadPool[i]->getUid(), threadPool[i]->getTid(), threadPool[i]->getName(), statusString[threadPool[i]->getStatus()]);
+		if (threadPoolValidation[i] == true)
+			printf("%d\t%d\t%s\t%s\n", threadPool[i]->getUid(), threadPool[i]->getTid(), threadPool[i]->getName(), statusString[threadPool[i]->getStatus()]);
 	}
 }
 
@@ -147,8 +151,11 @@ Thread::Fork(VoidFunctionPtr func, int arg)
     StackAllocate(func, arg);
 
     IntStatus oldLevel = interrupt->SetLevel(IntOff); //IntOff is define in machine.h  enum varible with {IntOff, IntOn}
+
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts
 					// are disabled!
+	currentThread->Yield(); // Krasus Edited
+
     (void) interrupt->SetLevel(oldLevel);
 }
 
@@ -202,6 +209,15 @@ Thread::Finish ()
 
     DEBUG('t', "Finishing thread \"%s\"\n", getName());
 
+	//Edited by Krasus, to make sure threadToBeDestroyed is not coverWritten by another one before release
+	if (threadToBeDestroyed != NULL) {
+		int id = threadToBeDestroyed->getTid();
+		threadPoolValidation[id] = false;
+		threadPool[id] = NULL;
+		delete threadToBeDestroyed;
+		threadToBeDestroyed = NULL;
+	}
+	//Edited by Krasus
     threadToBeDestroyed = currentThread;
     Sleep();					// invokes SWITCH
     // not reached
@@ -234,12 +250,21 @@ Thread::Yield ()
     ASSERT(this == currentThread);
 
     DEBUG('t', "Yielding thread \"%s\"\n", getName());
+	printf("Yielding thread \"%d\" : %d\n", getTid(), getTimeSlice());
 
     nextThread = scheduler->FindNextToRun();
-    if (nextThread != NULL) {
-	scheduler->ReadyToRun(this);
-	scheduler->Run(nextThread);
-    }
+	if (nextThread != NULL) {
+		//printf("current p :%d : next %d \n", getPriority(), nextThread->getPriority());
+		if (nextThread->getPriority() <= getPriority()) {
+				//printf("Thread \"%d\" is preempted by \"%d\" \n", getTid(), nextThread->getTid());
+				scheduler->ReadyToRun(this);
+				scheduler->Run(nextThread);
+			}
+			else {
+				//printf("Thread \"%d\" is not preempted with \"%d\" \n", getTid(), nextThread->getTid());
+				scheduler->ReadyToRun(nextThread);
+			}
+	}
     (void) interrupt->SetLevel(oldLevel);
 }
 

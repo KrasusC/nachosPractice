@@ -30,6 +30,8 @@
 Scheduler::Scheduler()
 {
     readyList = new List;
+	readyList1 = new List;
+	readyList2 = new List;
 }
 
 //----------------------------------------------------------------------
@@ -40,6 +42,8 @@ Scheduler::Scheduler()
 Scheduler::~Scheduler()
 {
     delete readyList;
+	delete readyList1;
+	delete readyList2;
 }
 
 //----------------------------------------------------------------------
@@ -56,7 +60,19 @@ Scheduler::ReadyToRun (Thread *thread)
     DEBUG('t', "Putting thread %s on ready list.\n", thread->getName());
 
     thread->setStatus(READY);
-    readyList->Append((void *)thread);
+
+	//Edited by Krasus
+	int p = thread->getPriority();
+	if (p <= Thread::priorityThreshold1) {
+		readyList->SortedInsert((void *)thread, thread->getPriority());
+	}
+	else if (p <= Thread::priorityThreshold2) {
+		readyList1->SortedInsert((void *)thread, thread->getPriority());
+	}
+	else {
+		readyList2->SortedInsert((void *)thread, thread->getPriority());
+	}
+    // Krasus Edited
 }
 
 //----------------------------------------------------------------------
@@ -70,7 +86,17 @@ Scheduler::ReadyToRun (Thread *thread)
 Thread *
 Scheduler::FindNextToRun ()
 {
-    return (Thread *)readyList->Remove();
+	// Edited by Krasus
+	Thread* temp;
+	temp = (Thread *)readyList->Remove();
+	if (temp != NULL)
+		return temp;
+	temp = (Thread *)readyList1->Remove();
+	if (temp != NULL)
+		return temp;
+	temp = (Thread *)readyList2->Remove();
+	return temp;
+	// Edited by Krasus
 }
 
 //----------------------------------------------------------------------

@@ -53,6 +53,7 @@
 #include "utility.h"
 #include "system.h"
 #include "thread.h"
+#include "scheduler.h"
 
 #ifdef THREADS
 extern int testnum;
@@ -79,10 +80,9 @@ extern void MailTest(int networkID);
 //		ex: "nachos -d +" -> argv = {"nachos", "-d", "+"}
 //----------------------------------------------------------------------
 
-int
 main(int argc, char **argv)
 {
-    int argCount;			// the number of arguments
+	int argCount;			// the number of arguments
 					// for a particular command
 
     DEBUG('t', "Entering main");

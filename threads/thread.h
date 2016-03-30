@@ -105,11 +105,24 @@ class Thread {
     void Print() { printf("%s, ", name); }
 
 	// Edited by Krasus
+	void setUid(int newId) { uid = newId; }
 	int getTid() { return tid; }
+	void setTid(int t) { tid = t; }
 	int getUid() { return uid; }
 	int getStatus() { return status; }
+
+	void setPriority(int p) { priority = p; }
+	int getPriority() { return priority; }
+
+	void setTimeSlice(int i) { usedTimeSlice = i; }
+	int getTimeSlice() { return usedTimeSlice; }
+	void increaseTimeSlice() { usedTimeSlice = usedTimeSlice + 1; }
+
 	static int checkMaxNumberAndReturn();
 	static void printThreads();
+
+	const static int priorityThreshold1 = 2;
+	const static int priorityThreshold2 = 6;
 	// Edited by Krasus
 
   private:
@@ -124,6 +137,8 @@ class Thread {
 	//Edited by Krasus
 	int tid;
 	int uid;
+	int priority;
+	int usedTimeSlice;
 	//Edited by Krasus
 
     void StackAllocate(VoidFunctionPtr func, int arg);

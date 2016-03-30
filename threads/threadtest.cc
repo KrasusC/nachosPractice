@@ -28,11 +28,14 @@ void
 SimpleThread(int which)
 {
     int num;
-
-    for (num = 0; num < 5; num++) {
-		//printf("*** thread %d looped %d times\n", which, num);
-        currentThread->Yield();
+	printf("Thread is stated with tid : %d\n", currentThread->getTid());
+    for (num = 0; num < 100; num++) {
+		IntStatus oldLevel = interrupt->SetLevel(IntOn);
+		//printf("in : %d\n", currentThread->getTid());
+		interrupt->SetLevel(IntOff);
+		interrupt->SetLevel(oldLevel);
     }
+	printf("Thread is finished with tid : %d\n", currentThread->getTid());
 }
 
 void PrintThread(int which) {
@@ -51,11 +54,18 @@ ThreadTest1()
 {
     DEBUG('t', "Entering ThreadTest1");
 
-	for (int i = 0; i < 135; ++i) {
-	    Thread *t = new Thread("forked thread");
-		t->Fork(PrintThread, 1);
-	    //SimpleThread(0);
+	for (int priority = 10; priority >= 5; --priority) {
+		for (int i = 0; i < 3; ++i) {
+			Thread *t = new Thread("forked thread", 1, priority);
+			Thread *t1 = new Thread("forked thread", 1, priority - 1);
+			Thread *t2 = new Thread("forked thread", 1, priority);
+			t->Fork(SimpleThread, 1);
+			t1->Fork(SimpleThread, 1);
+			t2->Fork(SimpleThread, 1);
+
+		}
 	}
+	currentThread->Yield();
 }
 
 //----------------------------------------------------------------------
